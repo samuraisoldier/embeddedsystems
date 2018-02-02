@@ -38,7 +38,7 @@ while (cnter < 100):
     data=int.from_bytes(i2c.readfrom(0x29, 2), 'little')
     payload=ujson.dumps({'name':'lux1', 'temprecord':data})
     print(payload)
-    client.publish('esys/El3ctricH0es/hello',bytes(payload, 'utf-8'))
+    client.publish('/esys/ElectricHoes/',bytes(payload, 'utf-8'))
     time.sleep(10)
     cnter = cnter + 1
 
