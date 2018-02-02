@@ -3,32 +3,41 @@ import machine
 import time
 import network
 import ujson
-import json
+#import json
+#check if json is really needed
 
 from umqtt.simple import MQTTClient
-from machine import I2C, Pin
+from machine import I2C, Pin #for some reason needs both machine imports
 
-regc=0xb5
-regr=0xb7
-#regg=0xb9
-#regb=0xbb
-#avg_cnt = 3
+regc=0xb5 #clear reg high
+regr=0xb7 #red reg high
+#regg=0xb9 #green reg high
+#regb=0xbb #blue reg high
+#avg_cnt = 3 #global variable for averaging purposes
 
-ap_if = network.WLAN(network.AP_IF)
-ap_if.active(False)
-sta_if = network.WLAN(network.STA_IF)
-sta_if.active(True)
-sta_if.scan()
-time.sleep(5)
-sta_if.connect('EEERover', 'exhibition')
-time.sleep(5)
-print(sta_if.isconnected())
 
-device_id=str(machine.unique_id())
-#print(device_id)
-client=MQTTClient(device_id, '192.168.0.10')
-client.connect()
+# function to set up the wifi connection
 
+def connect_network():
+    ap_if = network.WLAN(network.AP_IF)     # access point false 
+    ap_if.active(False)
+    sta_if = network.WLAN(network.STA_IF)   # station true
+    sta_if.active(True)
+    sta_if.scan()                           #scan for wifi networks
+    time.sleep(3)                           #pause to allow scan to complete
+    sta_if.connect('EEERover', 'exhibition')#connect to the wifi network
+    time.sleep(3)                           #pause to allow completion
+    print(sta_if.isconnected())             #debug line to check connection
+    return
+
+#function to set up MQTT
+def connect_mqtt():
+    device_id=str(machine.unique_id())
+    client=MQTTClient(device_id, '192.168.0.10')
+    client.connect()
+    return
+    
+    
 cnter = 0
 
 while (cnter < 100):
