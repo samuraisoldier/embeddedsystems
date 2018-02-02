@@ -35,6 +35,8 @@ def connect_mqtt():
     device_id=str(machine.unique_id())
     client=MQTTClient(device_id, '192.168.0.10')
     client.connect()
+    testmsg=ujson.dumps({'name':'successful connection'})
+    client.publish('/esys/ElectricHoes/',bytes(testmsg, 'utf-8'))
     return
     
     
