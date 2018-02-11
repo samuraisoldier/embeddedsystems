@@ -1,4 +1,9 @@
+# -*- coding: utf-8 -*-
+
 import paho.mqtt.client as mqtt
+#import json
+
+
 
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
@@ -8,9 +13,31 @@ def on_connect(client, userdata, flags, rc):
     # reconnect then subscriptions will be renewed.
     client.subscribe("/esys/ElectricHoes/")
 
+def errthing_else(nsg, red, green, blue):
+    if ((str(nsg))[3]=='r'):
+        red = (str(nsg))[3:-2]
+        print(red + " red")
+    elif ((str(nsg))[3]=='b'):
+        blue = (str(nsg))[3:-2]
+        print(blue + " blue")
+            # call fn here
+    elif ((str(nsg))[3]=='g'):
+        green = (str(nsg))[3:-2]
+        print(green + " green")
+    print(red)
+    print(green)
+    print(blue)
+
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
-    print(msg.topic+" "+str(msg.payload))
+    print(str(msg.payload))
+    nsg = (str(msg.payload))
+    red = 0
+    blue = 0
+    green = 0
+    errthing_else(nsg, red, green, blue)
+
+
 
 client = mqtt.Client()
 client.on_connect = on_connect
