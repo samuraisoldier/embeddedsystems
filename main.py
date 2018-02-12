@@ -34,20 +34,18 @@ def connect_network():
 
 #sideting function to set up MQTT
 def connect_mqtt(client):
-    #device_id=str(machine.unique_id())
-    #client=MQTTClient(device_id, '192.168.0.10')
     client.connect()
     testmsg=ujson.dumps({'name':'successful connection'})
     client.publish('/esys/ElectricHoes/',bytes(testmsg, 'utf-8'))
 
-#sideting function to test mqtt
+'''#sideting function to test mqtt
 def mqtt_test(client):
     i2c.writeto(0x29, bytearray({0xa0, 0x03}))
     i2c.writeto(0x29, bytearray({regc}))
     test_data=int.from_bytes(i2c.readfrom(0x29, 2), 'little')
     test_load=ujson.dumps({'name':'test', 'temprecord':test_data})
     print(test_load)
-    client.publish('/esys/ElectricHoes/',bytes(test_load, 'utf-8'))
+    client.publish('/esys/ElectricHoes/',bytes(test_load, 'utf-8'))'''
 
 #sideting function to read values from sensor
 def read_val(reg):
@@ -63,64 +61,51 @@ def take_reading():
     redsum = 0
     bluesum = 0
     cntmax = 100
+
     while(avgcnt < cntmax):
         luxsum = luxsum + read_val(regc)
         redsum = redsum + read_val(regr)
         greensum = greensum + read_val(regg)
         bluesum = bluesum + read_val(regb)
         avgcnt = avgcnt + 1
-    #lux1 = luxsum/cntmax
-    #lux = "l"+
 
-    '''red1 = redsum/cntmax
-    red = "r"+str(red1)
+    lux1 = (luxsum/cntmax)
+    print(lux1)
+    lux=round(((lux1*255)/65000), 0)
+
+    red1 = (redsum/cntmax)
+    print(red1)
+    red=round(((red1*255)/65000), 0)
+
     green1 = greensum/cntmax
-    green = "g" + str(green1)
+    print(green1)
+    green=round(((green1*255)/65000), 0)
+
     blue1 = bluesum/cntmax
-    blue = "b"+str(blue1)
+    print(blue1)
+    blue=round(((blue1*255)/56), 0)
 
-    #luxj=ujson.dumps({lux})
-    #print(luxj)
-    #client.publish('/esys/ElectricHoes/',bytes(luxj, 'utf-8'))
-
-    redj=ujson.dumps({red})
-    print(redj)
-    client.publish('/esys/ElectricHoes/',bytes(redj, 'utf-8'))
-
-    greenj=ujson.dumps({green})
-    print(greenj)
-    client.publish('/esys/ElectricHoes/',bytes(greenj, 'utf-8'))
-
-    bluej=ujson.dumps({blue})
-    print(bluej)
-    client.publish('/esys/ElectricHoes/',bytes(bluej, 'utf-8'))
-'''
-
-    red = redsum/cntmax
-    green = greensum/cntmax
-    blue = bluesum/cntmax
-    payload=ujson.dumps({'clear':lux, 'red': red, 'green': green, 'blue':blue})
+    payload=ujson.dumps({'brightness':lux, 'red': red, 'green': green, 'blue':blue}) #need to add time library for this
     print(payload)
     client.publish('/esys/ElectricHoes/',bytes(payload, 'utf-8'))
+
 
 def sub_cb(topic, msg):
     print((topic,msg))
     if msg == b"on":
-        print("1")
         take_reading()
 
-def main():
+def sub_function():
     #server=
     client.set_callback(sub_cb)
     client.connect()
     client.subscribe('/esys/ElectricHoes/')
-    #print("Connected to %s, subscribed to %s topic" %('192.168.1.10', '/esys/ElectricHoes/'))
+    print("Connected to %s, subscribed to %s topic" %('192.168.1.10', '/esys/ElectricHoes/'))
     print("ready")
     try:
         while 1:
             client.wait_msg()
     finally:
-        print("0")
         client.disconnect()
 
 print("setting up network")
@@ -129,40 +114,6 @@ connect_network()
 print("setting up mqtt")
 #connect to the mqtt server
 connect_mqtt(client)
-print=("Gucci Gang")
-#subscribeee and wait
-main()
-
-
-
-
-
-
-'''
-#mainting inni
-def main():
-    cnter = 1
-    while (cnter < 201):
-        avgcnt = 0
-        luxsum = 0
-        greensum = 0
-        redsum = 0
-        bluesum = 0
-        cntmax = 100
-        while(avgcnt < cntmax):
-            luxsum = luxsum + read_val(regc)
-            redsum = redsum + read_val(regr)
-            greensum = greensum + read_val(regg)
-            bluesum = bluesum + read_val(regb)
-            avgcnt = avgcnt + 1
-        lux = luxsum/cntmax
-        red = redsum/cntmax
-        green = greensum/cntmax
-        blue = bluesum/cntmax
-        #reading = time
-        payload=ujson.dumps({'count':cnter, 'clear':lux, 'red': red, 'green': green, 'blue':blue}) #need to add time library for this
-        print(payload)
-        client.publish('/esys/ElectricHoes/',bytes(payload, 'utf-8'))
-        time.sleep(4)
-        cnter = cnter + 1
-'''
+print("Gucci Gang")
+#subscribeee and wait for a message
+sub_function()
