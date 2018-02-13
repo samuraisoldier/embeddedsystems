@@ -11,10 +11,10 @@ from machine import I2C, Pin #for some reason needs both machine imports
 
 #global variables
 i2c = I2C(scl=Pin(5), sda=Pin(4), freq = 100000)
-regc=0xb5 #clear reg high
-regr=0xb7 #red reg high
-regg=0xb9 #green reg high
-regb=0xbb #blue reg high
+regc=0xb4 #clear reg high
+regr=0xb6 #red reg high
+regg=0xb8 #green reg high
+regb=0xba #blue reg high
 
 #need client to be accessible in multiple functions, might need to pass it as an operand
 device_id=str(machine.unique_id())
@@ -71,21 +71,20 @@ def take_reading():
 
     lux1 = (luxsum/cntmax)
     print(lux1)
-    lux=round(((lux1*255)/65000), 0)
 
     red1 = (redsum/cntmax)
     print(red1)
-    red=round(((red1*255)/65000), 0)
+    red=round(((red1*255)/20000), 0)
 
     green1 = greensum/cntmax
     print(green1)
-    green=round(((green1*255)/65000), 0)
+    green=round(((green1*255)/20000), 0)
 
     blue1 = bluesum/cntmax
     print(blue1)
-    blue=round(((blue1*255)/56), 0)
+    blue=round(((blue1*255)/20000), 0)
 
-    payload=ujson.dumps({'brightness':lux, 'red': red, 'green': green, 'blue':blue}) #need to add time library for this
+    payload=ujson.dumps({'brightness':lux1, 'red': red1, 'green': green1, 'blue':blue1}) #need to add time library for this
     print(payload)
     client.publish('/esys/ElectricHoes/',bytes(payload, 'utf-8'))
 
