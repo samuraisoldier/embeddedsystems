@@ -37,7 +37,7 @@ def connect_mqtt(client):
     testmsg=ujson.dumps({'name':'successful connection'}) #print to confirm connection
     client.publish('/esys/ElectricHoes/',bytes(testmsg, 'utf-8'))
 
-#sideting function to read values from sensor
+#function to read values from sensor
 def read_val(reg):
     i2c.writeto(0x29, bytearray({0xa0, 0x03})) #initialise WEN and AEN
     i2c.writeto(0x29, bytearray({reg})) #ask device to read from each register
