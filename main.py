@@ -7,7 +7,6 @@ import ujson
 
 from umqtt.simple import MQTTClient
 from machine import I2C, Pin #for some reason needs both machine imports
-#import paho.mqtt.client as mqtt
 
 #global variables
 i2c = I2C(scl=Pin(5), sda=Pin(4), freq = 100000)
@@ -20,7 +19,7 @@ regb=0xba #blue reg high
 device_id=str(machine.unique_id())
 client=MQTTClient(device_id, '192.168.0.10')
 
-#sideting function to set up the wifi connection
+#function to set up the wifi connection
 def connect_network():
     ap_if = network.WLAN(network.AP_IF)     # access point false
     ap_if.active(False)
@@ -32,36 +31,29 @@ def connect_network():
     time.sleep(4)                           #pause to allow completion
     print(sta_if.isconnected())             #debug line to check connection
 
-#sideting function to set up MQTT
+#function to set up MQTT
 def connect_mqtt(client):
     client.connect()
-    testmsg=ujson.dumps({'name':'successful connection'})
+    testmsg=ujson.dumps({'name':'successful connection'}) #print to confirm connection
     client.publish('/esys/ElectricHoes/',bytes(testmsg, 'utf-8'))
-
-'''#sideting function to test mqtt
-def mqtt_test(client):
-    i2c.writeto(0x29, bytearray({0xa0, 0x03}))
-    i2c.writeto(0x29, bytearray({regc}))
-    test_data=int.from_bytes(i2c.readfrom(0x29, 2), 'little')
-    test_load=ujson.dumps({'name':'test', 'temprecord':test_data})
-    print(test_load)
-    client.publish('/esys/ElectricHoes/',bytes(test_load, 'utf-8'))'''
 
 #sideting function to read values from sensor
 def read_val(reg):
-    i2c.writeto(0x29, bytearray({0xa0, 0x03}))
-    i2c.writeto(0x29, bytearray({reg}))
-    data=int.from_bytes(i2c.readfrom(0x29, 2), 'little')
-    return data
+    i2c.writeto(0x29, bytearray({0xa0, 0x03})) #initialise WEN and AEN
+    i2c.writeto(0x29, bytearray({reg})) #ask device to read from each register
+    data=int.from_bytes(i2c.readfrom(0x29, 2), 'little') #read data and convert to int
+    return data #return the data
 
 def take_reading():
+    #set up needd variables
     avgcnt = 0
     luxsum = 0
     greensum = 0
     redsum = 0
     bluesum = 0
-    cntmax = 100
+    cntmax = 100 #set up how many readings to take average of
 
+    #take cntmax readings of each colour
     while(avgcnt < cntmax):
         luxsum = luxsum + read_val(regc)
         redsum = redsum + read_val(regr)
@@ -69,33 +61,53 @@ def take_reading():
         bluesum = bluesum + read_val(regb)
         avgcnt = avgcnt + 1
 
-    lux1 = (luxsum/cntmax)
-    print(lux1)
+    lux1 = (luxsum/cntmax) #average the brightness
 
+    #average the red readings
     red1 = (redsum/cntmax)
-    print(red1)
     red=round(((red1*255)/20000), 0)
 
+    #average the green readings
     green1 = greensum/cntmax
-    print(green1)
     green=round(((green1*255)/20000), 0)
 
+    #average the blue readings
     blue1 = bluesum/cntmax
-    print(blue1)
     blue=round(((blue1*255)/20000), 0)
 
-    payload=ujson.dumps({'brightness':lux1, 'red': red1, 'green': green1, 'blue':blue1}) #need to add time library for this
-    print(payload)
+    #prepare and send payload
+    payload=ujson.dumps({'brightness': lux1, 'red': red, 'green': green, 'blue':blue})
     client.publish('/esys/ElectricHoes/',bytes(payload, 'utf-8'))
 
+    #code to seperately send each colour for individual processing to light up LEDS
+    '''
+    time.sleep(1) #pause to allow subscribe to complete all tasks
+    red = "r"+str(red)
+    redj=ujson.dumps({red})
+    print(redj)
+    client.publish('/esys/ElectricHoes/',bytes(redj, 'utf-8'))
 
+    time.sleep(1)
+    green = "g" + str(green)
+    greenj=ujson.dumps({green})
+    print(greenj)
+    client.publish('/esys/ElectricHoes/',bytes(greenj, 'utf-8'))
+
+    time.sleep(1)
+    blue = "l"+str(blue)
+    bluej=ujson.dumps({blue})
+    print(bluej)
+    client.publish('/esys/ElectricHoes/',bytes(bluej, 'utf-8'))
+    '''
+
+    #subscribe function to take readings when you send "on"
 def sub_cb(topic, msg):
     print((topic,msg))
     if msg == b"on":
         take_reading()
 
+#set up mqtt
 def sub_function():
-    #server=
     client.set_callback(sub_cb)
     client.connect()
     client.subscribe('/esys/ElectricHoes/')
