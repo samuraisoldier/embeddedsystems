@@ -125,6 +125,6 @@ connect_network()
 print("setting up mqtt")
 #connect to the mqtt server
 connect_mqtt(client)
-print("Gucci Gang")
-#subscribeee and wait for a message
+print("Ready to take readings")
+#subscribe and wait for a message
 sub_function()
